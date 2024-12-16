@@ -5,11 +5,11 @@ import util.DatabaseConnection;
 
 import java.sql.*;
 
-public class UserDao {
+public class UserDAO {
 	public boolean registerUser(User user) {
 		String query = "INSERT INTO Users (name, email, password, role) VALUES (?, ?, ?, ?)";
 		
-		try(Connection connection = DatabaseConnection.getConnection();
+		try(Connection connection = DatabaseConnection.getInstance().getConnection();
 			PreparedStatement pstmt = connection.prepareStatement(query)){
 			
 			pstmt.setString(1, user.getName());
@@ -31,7 +31,7 @@ public class UserDao {
 		String query = "SELECT * FROM Users WHERE email = ? AND password = ?";
 		User user = null;
 		
-		try(Connection connection = DatabaseConnection.getConnection();
+		try(Connection connection = DatabaseConnection.getInstance().getConnection();
 			PreparedStatement pstmt = connection.prepareStatement(query)){
 			
 			pstmt.setString(1, email);
@@ -59,7 +59,7 @@ public class UserDao {
         String query = "SELECT * FROM Users WHERE email = ?";
         User user = null;
 
-        try (Connection connection = DatabaseConnection.getConnection();
+        try (Connection connection = DatabaseConnection.getInstance().getConnection();
              PreparedStatement pstmt = connection.prepareStatement(query)) {
 
             pstmt.setString(1, email);

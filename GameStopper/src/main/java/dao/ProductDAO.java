@@ -14,7 +14,7 @@ public class ProductDAO {
         List<Product> products = new ArrayList<>();
         String query = "SELECT * FROM Products";
 
-        try (Connection connection = DatabaseConnection.getConnection();
+        try (Connection connection = DatabaseConnection.getInstance().getConnection();
              Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
 
@@ -38,12 +38,11 @@ public class ProductDAO {
         return products;
     }
 
-    // Get product by ID
     public Product getProductById(int id) {
         Product product = null;
         String query = "SELECT * FROM Products WHERE id = ?";
 
-        try (Connection connection = DatabaseConnection.getConnection();
+        try (Connection connection = DatabaseConnection.getInstance().getConnection();
              PreparedStatement pstmt = connection.prepareStatement(query)) {
              
             pstmt.setInt(1, id);

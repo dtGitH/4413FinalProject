@@ -1,6 +1,7 @@
 package controller;
 
-import dao.ShoppingCartDao;
+import dao.ShoppingCartDAO;
+import factory.DAOFactory;
 import model.ShoppingCart;
 
 import javax.servlet.RequestDispatcher;
@@ -15,7 +16,11 @@ import java.util.List;
 
 @WebServlet("/cart")
 public class ShoppingCartController extends HttpServlet {
-    private ShoppingCartDAO shoppingCartDAO = new ShoppingCartDAO();
+    private ShoppingCartDAO shoppingCartDAO;
+    
+    public ShoppingCartController() {
+    	this.shoppingCartDAO = DAOFactory.getShoppingCartDAO();
+    }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

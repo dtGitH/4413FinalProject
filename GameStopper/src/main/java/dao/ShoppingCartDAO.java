@@ -7,13 +7,13 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ShoppingCartDao {
+public class ShoppingCartDAO {
 
     // Add a product to the cart
     public boolean addToCart(int userId, int productId, int quantity) {
         String query = "INSERT INTO ShoppingCart (user_id, product_id, quantity) VALUES (?, ?, ?)";
 
-        try (Connection connection = DatabaseConnection.getConnection();
+        try (Connection connection = DatabaseConnection.getInstance().getConnection();
              PreparedStatement pstmt = connection.prepareStatement(query)) {
 
             pstmt.setInt(1, userId);
@@ -37,7 +37,7 @@ public class ShoppingCartDao {
                        "JOIN Products p ON sc.product_id = p.id " +
                        "WHERE sc.user_id = ?";
 
-        try (Connection connection = DatabaseConnection.getConnection();
+        try (Connection connection = DatabaseConnection.getInstance().getConnection();
              PreparedStatement pstmt = connection.prepareStatement(query)) {
 
             pstmt.setInt(1, userId);
@@ -64,7 +64,7 @@ public class ShoppingCartDao {
     public boolean removeFromCart(int cartId) {
         String query = "DELETE FROM ShoppingCart WHERE id = ?";
 
-        try (Connection connection = DatabaseConnection.getConnection();
+        try (Connection connection = DatabaseConnection.getInstance().getConnection();
              PreparedStatement pstmt = connection.prepareStatement(query)) {
 
             pstmt.setInt(1, cartId);
@@ -82,7 +82,7 @@ public class ShoppingCartDao {
     public boolean clearCart(int userId) {
         String query = "DELETE FROM ShoppingCart WHERE user_id = ?";
 
-        try (Connection connection = DatabaseConnection.getConnection();
+        try (Connection connection = DatabaseConnection.getInstance().getConnection();
              PreparedStatement pstmt = connection.prepareStatement(query)) {
 
             pstmt.setInt(1, userId);
