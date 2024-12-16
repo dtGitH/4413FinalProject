@@ -15,7 +15,11 @@ import java.io.IOException;
 
 @WebServlet("/user")
 public class UserController extends HttpServlet {
-    private UserDAO userDAO;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private UserDAO userDAO;
     
     public UserController() {
     	this.userDAO = DAOFactory.getUserDAO();
@@ -56,30 +60,36 @@ public class UserController extends HttpServlet {
 	        } 
     	} catch (Exception e) {
 	        e.printStackTrace();
-	        sendRedirectWithMessage(request, response, "views/register.jsp", "error", "An unexpected error occurred. Please try again.");
 	    }
         
     }
 
     private void loginUser(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String email = request.getParameter("email");
-        String password = request.getParameter("password");
+    	try {
+    		String email = request.getParameter("email");
+    	    String password = request.getParameter("password");
+	        User user = userDAO.validateUser(email, password);
 
-        User user = userDAO.validateUser(email, password);
-
-        if (user != null) {
-            HttpSession session = request.getSession();
-            session.setAttribute("user", user);
-            if ("admin".equals(user.getRole())) {
-                response.sendRedirect("views/adminDashboard.jsp");
-            } else {
-                response.sendRedirect("views/home.jsp");
-            }
-        } else {
-            request.setAttribute("error", "Invalid email or password.");
-            sendRedirectWithMessage(request, response, "views/login.jsp", "error", "An unexpected error occurred. Please try again.");
-        }
+	        if (user != null) {
+	            HttpSession session = request.getSession();
+	            session.setAttribute("user", user);
+	            session.setAttribute("userId", user.getId());
+	            session.setAttribute("role", user.getRole());
+	            
+	            if ("admin".equals(user.getRole())) {
+	                response.sendRedirect("views/adminDashboard.jsp");
+	            } else {
+	                response.sendRedirect("views/home.jsp");
+	            }
+	        } else {
+	            request.setAttribute("error", "Invalid email or password.");
+	            sendRedirectWithMessage(request, response, "views/login.jsp", "error", "An unexpected error occurred. Please try again.");
+	        }
+    	} catch (Exception e) {
+	        e.printStackTrace();
+	    }
+       
     }
     
     private void sendRedirectWithMessage(HttpServletRequest request, HttpServletResponse response, String viewPath, String messageType, String message)
