@@ -1,0 +1,358 @@
+/* General Reset */
+body, h1, h2, h3, h4, h5, h6, p, ul, li, a {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	font-family: 'Arial', sans-serif;
+	background-color: #1f1f1f;
+	color: #ffffff;
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;	
+}
+
+.container {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 auto;
+	height: 150px;
+}
+
+/* Header Area */
+.header-area {
+	background-color: #292b2c;
+	padding: 20px 0;
+
+}
+
+.logo img {
+	width: 300px; 
+}
+
+.nav {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	height: 210px;
+}
+
+.menu {
+	display: flex;
+	list-style: none;
+	gap: 20px;
+}
+
+.menu li {
+	position: relative;
+}
+
+.menu a {
+	color: white;
+	text-decoration: none;
+	font-weight: bold;
+	padding: 10px 20px;
+	border: 2px solid white;
+	border-radius: 5px;
+	transition: background 0.3s ease, color 0.3s ease;
+	display: inline-block;
+	text-align: center;
+	background-color: transparent;
+}
+
+.menu a:hover {
+	background-color: #ff6f61;
+	color: white;
+}
+
+/* Search Bar */
+.search-bar {
+    display: flex;
+    align-items: center;
+    background-color: #666666;
+    border-radius: 50px;
+    padding: 5px 15px;
+    width: 250px;
+    
+}
+
+.search-bar input[type="text"] {
+    border: none;
+    background: transparent;
+    color: #aaaaaa;
+    outline: none;
+    width: 100%;
+    font-size: 14px;
+}
+
+.search-bar input[type="text"]::placeholder {
+    color: white;
+}
+
+.search-bar button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.search-bar button img {
+    width: 18px;
+    height: 18px;
+    filter: brightness(0) invert(1); 
+}
+
+/* Dropdown Menu */
+.menu .dropdown:hover .dropdown-menu {
+	display: block;
+}
+
+.dropdown-menu {
+	display: none;
+	position: absolute;
+	top: 100%;
+	left: 0;
+	background-color: #2a2a2a;
+	border-radius: 8px;
+	padding: 10px 0;
+	min-width: 150px;
+	z-index: 999;
+}
+
+.dropdown-menu li {
+	list-style: none;
+}
+
+.dropdown-menu a {
+	display: block;
+	padding: 10px 20px;
+	color: white;
+	border: 2px solid white;
+	border-radius: 5px;
+	transition: background 0.3s ease, color 0.3s ease;
+	margin-bottom: 5px;
+	background-color: transparent;
+}
+
+.dropdown-menu a:hover {
+	background-color: #ff6f61;
+	color: white;
+}
+
+.dropdown-menu a:last-child {
+	margin-bottom: 0;
+}
+
+/* Footer Styles */
+footer {
+	background-color: #292b2c; 
+	color: white;
+	width: 100%;
+	padding: 20px 0;
+	display: flex;
+	justify-content: center; 
+	align-items: center; 
+	position: relative;
+	text-align: center;
+	margin-top: auto; 
+	height: 20px;
+}
+
+footer p {
+	font-size: 14px;
+	margin: 0;
+}
+
+/* Full Page Split Layout */
+.signin-fullpage {
+    display: flex;
+    background-color: #1f1f1f; 
+}
+
+/* Left Section - Poster Image */
+.signin-left {
+    flex: 1;
+    position: relative;
+    background-color: #1f1f1f;
+}
+
+.signin-left .poster-image {
+    object-fit: cover; 
+}
+
+/* Right Section - Sign In Form */
+.signin-right {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #292b2c; 
+    padding: 40px;
+}
+
+.signin-card {
+    background-color: #333333;
+    padding: 30px 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    color: #ffffff;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.signin-card h2 {
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #ff6f61;
+}
+
+.signin-card label {
+    display: block;
+    margin: 10px 0 5px;
+    font-size: 14px;
+    text-align: left;
+    color: #cccccc;
+}
+
+.signin-card input {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #444444;
+    color: #ffffff;
+    margin-bottom: 15px;
+}
+
+.signin-card input:focus {
+    outline: none;
+    box-shadow: 0 0 5px #ff6f61;
+}
+
+.continue-button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background: linear-gradient(135deg, #6a11cb, #ff6f61);
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.continue-button:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #5a0eb5, #e05750);
+}
+
+.register-text {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #cccccc;
+}
+
+.register-link {
+    color: #ff6f61;
+    text-decoration: none;
+}
+
+.register-link:hover {
+    text-decoration: underline;
+}
+
+
+/* General Body Section Styling */
+.homepage-content {
+    padding: 20px;
+    background-color: #1f1f1f;
+}
+
+/* Banner Section */
+.banner-section {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.banner-section img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+/* Section Styling */
+.new-releases, .preorder-games {
+    margin: 30px 0;
+    text-align: center;
+}
+
+.new-releases h2, .preorder-games h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: #ffffff;
+}
+
+.new-releases span, .preorder-games span {
+    color: #ff6f61;
+}
+
+/* Game Row */
+.game-row {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+/* Game Card */
+.game-card {
+    background-color: #333333;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    width: 200px;
+    padding: 10px;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.game-card img {
+    width: 100%;            
+    height: 150px;          
+    object-fit: cover;      
+    border-radius: 8px;     
+}
+
+
+.game-card p {
+    margin: 10px 0;
+    color: #ffffff;
+}
+
+.game-card .price {
+    font-weight: bold;
+    color: #ff6f61;
+}
+
+.game-card .add-to-cart {
+    background-color: #ff6f61;
+    color: #ffffff;
+    border: none;
+    padding: 8px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.game-card .add-to-cart:hover {
+    background-color: #e05750;
+}
+
+.game-card:hover {
+    transform: translateY(-5px);
+}
+
