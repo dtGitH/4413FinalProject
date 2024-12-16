@@ -1,0 +1,51 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sign In - GameStopper</title>
+<link href="${pageContext.request.contextPath}/css/style.css"
+	rel="stylesheet">
+</head>
+<body>
+	<!-- Include Header -->
+	<jsp:include page="header.jsp" />
+
+	<!-- Full Page Sign In Container -->
+	<div class="signin-fullpage">
+		<!-- Left Section: Poster Image -->
+		<div class="signin-left">
+			<img
+				src="https://s3artstore.com/cdn/shop/articles/Key_Principles_for_the_Creation_of_a_Video_Game_Character_Cover_01_1200x1200.jpg?v=1665003433"
+				alt="Poster Image" class="poster-image">
+		</div>
+
+		<!-- Right Section: Sign In Form -->
+		<div class="signin-right">
+			<div class="signin-card">
+				<h2>Sign In</h2>
+				<form method="post" action="processLogin.jsp">
+					<label for="email">Email Address:</label> <input type="email"
+						id="email" name="email" placeholder="Enter your email" required>
+
+					<label for="password">Password:</label> <input type="password"
+						id="password" name="password" placeholder="Enter your password"
+						required>
+
+					<button type="submit" class="continue-button">Continue</button>
+				</form>
+
+				<!-- Redirect to Register -->
+				<p class="register-text">
+					New here? <a href="register.jsp" class="register-link">Create
+						an Account</a>
+				</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- Include Footer -->
+	<jsp:include page="footer.jsp" />
+</body>
+</html>
