@@ -1,12 +1,14 @@
 package controller;
 
 import dao.OrderDAO;
+import dao.UserDAO;
 import factory.DAOFactory;
 import dao.ShoppingCartDAO;
 import model.Order;
+import model.User;
 import observer.EmailNotificationObserver;
 import observer.OrderObserver;
-import observer.AdminNotificationObserver;
+//import observer.AdminNotificationObserver;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -21,16 +23,21 @@ import java.util.List;
 
 @WebServlet("/order")
 public class OrderController extends HttpServlet {
-    private OrderDAO orderDAO;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private OrderDAO orderDAO;
     private ShoppingCartDAO cartDAO;
+    private UserDAO userDAO;
     private List<OrderObserver> observers = new ArrayList<>();
     
     public OrderController() {
     	this.orderDAO = DAOFactory.getOrderDAO();
     	this.cartDAO = DAOFactory.getShoppingCartDAO();
+    	this.userDAO = DAOFactory.getUserDAO();
     	
     	observers.add(new EmailNotificationObserver());
-    	observers.add(new AdminNotificationObserver());
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -39,20 +46,20 @@ public class OrderController extends HttpServlet {
     	try {
     		HttpSession session = request.getSession();
 	        Integer userId = (Integer) session.getAttribute("userId");
-	
+	        
+	        User user = userDAO.getUserById(userId);
 	        if (userId == null) {
 	            response.sendRedirect("views/login.jsp");
 	            return;
 	        }
 	
 	        double totalPrice = Double.parseDouble(request.getParameter("totalPrice"));
-	
 	        boolean orderCreated = orderDAO.createOrder(userId, totalPrice);
 	
 	        if (orderCreated) {
 	        	int orderId = orderDAO.getLatestOrderId(userId);
 	            cartDAO.clearCart(userId); // Clear cart after placing order
-	            notifyObservers(orderId);
+	            notifyObservers(orderId, user.getEmail());
 	            response.sendRedirect("order?action=view");
 	        } else {
 	            request.setAttribute("error", "Order creation failed.");
@@ -100,9 +107,9 @@ public class OrderController extends HttpServlet {
         dispatcher.forward(request, response);
     }
     
-    private void notifyObservers(int orderId) {
+    private void notifyObservers(int orderId, String email) {
     	for(OrderObserver obs:observers) {
-    		obs.onOrderPlaced(orderId);
+    		obs.onOrderPlaced(orderId, email);
     	}
     }
 }

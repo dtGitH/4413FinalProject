@@ -47,4 +47,46 @@ public class OrderDAO {
 
         return orders;
     }
+
+	public List<Order> getOrdersByUserId(Integer userId) {
+		List<Order> orders = new ArrayList<>();
+        String query = "SELECT * FROM Orders WHERE user_id = ? ORDER BY order_date DESC";
+
+        try (Connection connection = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(query)){
+        	pstmt.setInt(1,  userId);
+	        ResultSet rs = pstmt.executeQuery();
+	
+	            while (rs.next()) {
+	                Order order = new Order();
+	                order.setId(rs.getInt("id"));
+	                order.setUserId(rs.getInt("user_id"));
+	                order.setTotalPrice(rs.getDouble("total_price"));
+	                order.setOrderDate(rs.getTimestamp("order_date"));
+	                orders.add(order);
+	            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return orders;
+	}
+	
+	public int getLatestOrderId(int userId) {
+		String query = "SELECT id FROM Orders WHERE user_id = ? ORDER BY order_date DESC LIMIT 1";
+		try(Connection connection = DatabaseConnection.getInstance().getConnection();
+				PreparedStatement pstmt = connection.prepareStatement(query)) {
+			pstmt.setInt(1, userId);
+			ResultSet rs = pstmt.executeQuery();
+			
+			if(rs.next()) {
+				return rs.getInt("id");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return -1;
+	}
 }
