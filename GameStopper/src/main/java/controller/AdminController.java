@@ -27,3 +27,4 @@ public class AdminController extends HttpServlet {
         RequestDispatcher dispatcher = request.getRequestDispatcher("views/adminDashboard.jsp");
         dispatcher.forward(request, response);
     }
+}
