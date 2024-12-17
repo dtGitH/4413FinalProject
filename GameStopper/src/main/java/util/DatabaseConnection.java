@@ -5,7 +5,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseConnection {
-    private static DatabaseConnection instance; //singleton instance
+    private static DatabaseConnection instance; // Singleton instance
     private Connection connection;
 
     private static final String URL = "jdbc:mysql://localhost:3306/game_stopper";
@@ -14,9 +14,15 @@ public class DatabaseConnection {
 
     // Private constructor to prevent instantiation
     private DatabaseConnection() {
+        connect();
+    }
+
+    // Ensure connection is always valid
+    private void connect() {
         try {
-            this.connection = DriverManager.getConnection(URL, USER, PASSWORD);
-            connection.setAutoCommit(true);
+            if (connection == null || connection.isClosed()) {
+                this.connection = DriverManager.getConnection(URL, USER, PASSWORD);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException("Failed to create the database connection.");
@@ -35,8 +41,15 @@ public class DatabaseConnection {
         return instance;
     }
 
-    // Get the actual connection object
+    // Get the actual connection object, ensuring it's valid
     public Connection getConnection() {
+        try {
+            if (connection == null || connection.isClosed()) {
+                connect(); // Reconnect if connection is closed
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to validate the database connection.", e);
+        }
         return connection;
     }
 }
