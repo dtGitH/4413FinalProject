@@ -8,14 +8,15 @@ public class DatabaseConnection {
     private static DatabaseConnection instance; //singleton instance
     private Connection connection;
 
-    private static final String URL = "jdbc:mysql://localhost:3306/ecommerce";
+    private static final String URL = "jdbc:mysql://localhost:3306/game_stopper";
     private static final String USER = "root";
-    private static final String PASSWORD = "your_password";
+    private static final String PASSWORD = "GameStopper@123";
 
     // Private constructor to prevent instantiation
     private DatabaseConnection() {
         try {
             this.connection = DriverManager.getConnection(URL, USER, PASSWORD);
+            connection.setAutoCommit(true);
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException("Failed to create the database connection.");
