@@ -87,8 +87,7 @@ public class ProductDAOTest {
         product.setImageUrl("https://example.com/eldenring.jpg");
 
         productDAO.addProduct(product);
-        System.out.print(product.getId());
-        Product retrievedProduct = productDAO.getProductById(32);
+        Product retrievedProduct = productDAO.getProductById(product.getId());
         assertNotNull(retrievedProduct, "Product should be found by ID.");
         assertEquals("Elden Ring", retrievedProduct.getName(), "Product name should match.");
     }
@@ -184,7 +183,7 @@ public class ProductDAOTest {
         assertFalse(products.isEmpty(), "There should be at least 2 products with genre 'Shooter'.");
     }
 
-    /*@AfterAll
+    @AfterAll
     static void tearDown() throws Exception {
         try (Connection connection = DatabaseConnection.getInstance().getConnection();
              Statement stmt = connection.createStatement()) {
@@ -194,5 +193,5 @@ public class ProductDAOTest {
             e.printStackTrace();
             throw new RuntimeException("Failed to clean up after tests.");
         }
-    } */
+    } 
 }

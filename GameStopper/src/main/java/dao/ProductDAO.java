@@ -13,7 +13,7 @@ public class ProductDAO {
         String query = "INSERT INTO Products (name, description, price, stock, genre, device, image_url) VALUES (?, ?, ?, ?, ?, ?, ?)";
         
         try (Connection connection = DatabaseConnection.getInstance().getConnection();
-             PreparedStatement pstmt = connection.prepareStatement(query)) {
+             PreparedStatement pstmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 
             pstmt.setString(1, product.getName());
             pstmt.setString(2, product.getDescription());
@@ -24,7 +24,14 @@ public class ProductDAO {
             pstmt.setString(7, product.getImageUrl());
 
             int rowsAffected = pstmt.executeUpdate();
-            return rowsAffected > 0;
+            if(rowsAffected > 0) {
+            	ResultSet rs = pstmt.getGeneratedKeys();
+            	if(rs.next()) {
+            		int generatedId = rs.getInt(1);
+            		product.setId(generatedId);
+            	}
+            	return true;
+            }
 
         } catch (SQLException e) {
             e.printStackTrace();

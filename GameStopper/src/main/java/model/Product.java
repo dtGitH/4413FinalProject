@@ -6,8 +6,8 @@ public class Product {
     private String description;
     private double price;
     private int stock;
-    private String genre;         // New field for game genre
-    private String device;        // New field for platform (PS5, Xbox, etc.)
+    private String genre;    
+    private String device;       
     private String imageUrl;
 
     // Getters and Setters
