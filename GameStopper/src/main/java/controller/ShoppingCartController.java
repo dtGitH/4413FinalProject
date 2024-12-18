@@ -16,26 +16,24 @@ import java.util.List;
 
 @WebServlet("/cart")
 public class ShoppingCartController extends HttpServlet {
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	private ShoppingCartDAO shoppingCartDAO;
+    private static final long serialVersionUID = 1L;
+    private ShoppingCartDAO shoppingCartDAO;
     
     public ShoppingCartController() {
-    	this.shoppingCartDAO = DAOFactory.getShoppingCartDAO();
+        this.shoppingCartDAO = DAOFactory.getShoppingCartDAO();
     }
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
-        Integer userId = (Integer) session.getAttribute("userId");
+        Object userIdObj = session.getAttribute("userId");
 
-        if (userId == null) {
-            response.sendRedirect("views/login.jsp");
+        if (userIdObj == null || !(userIdObj instanceof Integer)) {
+            response.sendRedirect("cart");
             return;
         }
 
+        Integer userId = (Integer) userIdObj;
         String action = request.getParameter("action");
 
         if ("add".equals(action)) {
@@ -44,19 +42,22 @@ public class ShoppingCartController extends HttpServlet {
             removeFromCart(request, response);
         } else if ("clear".equals(action)) {
             clearCart(request, response, userId);
+        } else {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid action specified.");
         }
     }
 
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
-        Integer userId = (Integer) session.getAttribute("userId");
+        Object userIdObj = session.getAttribute("userId");
 
-        if (userId == null) {
+        if (userIdObj == null || !(userIdObj instanceof Integer)) {
             response.sendRedirect("views/login.jsp");
             return;
         }
 
+        Integer userId = (Integer) userIdObj;
         List<ShoppingCart> cartItems = shoppingCartDAO.getCartItems(userId);
         request.setAttribute("cartItems", cartItems);
 
@@ -66,8 +67,35 @@ public class ShoppingCartController extends HttpServlet {
 
     private void addToCart(HttpServletRequest request, HttpServletResponse response, int userId)
             throws ServletException, IOException {
-        int productId = Integer.parseInt(request.getParameter("productId"));
-        int quantity = Integer.parseInt(request.getParameter("quantity"));
+        String productIdParam = request.getParameter("productId");
+        String quantityParam = request.getParameter("quantity");
+
+        if (productIdParam == null || quantityParam == null) {
+            request.setAttribute("error", "Product ID and quantity are required.");
+            RequestDispatcher dispatcher = request.getRequestDispatcher("views/cart.jsp");
+            dispatcher.forward(request, response);
+            return;
+        }
+
+        int productId;
+        int quantity;
+        
+        try {
+            productId = Integer.parseInt(productIdParam);
+            quantity = Integer.parseInt(quantityParam);
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Invalid product ID or quantity.");
+            RequestDispatcher dispatcher = request.getRequestDispatcher("views/cart.jsp");
+            dispatcher.forward(request, response);
+            return;
+        }
+
+        if (productId <= 0 || quantity <= 0) {
+            request.setAttribute("error", "Product ID and quantity must be positive.");
+            RequestDispatcher dispatcher = request.getRequestDispatcher("views/cart.jsp");
+            dispatcher.forward(request, response);
+            return;
+        }
 
         boolean success = shoppingCartDAO.addToCart(userId, productId, quantity);
 
@@ -75,22 +103,57 @@ public class ShoppingCartController extends HttpServlet {
             response.sendRedirect("cart");
         } else {
             request.setAttribute("error", "Failed to add item to cart.");
-            RequestDispatcher dispatcher = request.getRequestDispatcher("views/error.jsp");
+            RequestDispatcher dispatcher = request.getRequestDispatcher("views/cart.jsp");
             dispatcher.forward(request, response);
         }
     }
 
     private void removeFromCart(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        int cartId = Integer.parseInt(request.getParameter("cartId"));
+        Object userIdObj = request.getSession().getAttribute("userId");
+        
+        if (userIdObj == null || !(userIdObj instanceof Integer)) {
+            request.setAttribute("error", "User not authenticated.");
+            RequestDispatcher dispatcher = request.getRequestDispatcher("views/login.jsp");
+            dispatcher.forward(request, response);
+            return;
+        }
 
-        boolean success = shoppingCartDAO.removeFromCart(cartId);
+        Integer userId = (Integer) userIdObj;
+        String cartIdParam = request.getParameter("cartId");
+
+        if (cartIdParam == null) {
+            request.setAttribute("error", "Cart ID is required.");
+            RequestDispatcher dispatcher = request.getRequestDispatcher("views/cart.jsp");
+            dispatcher.forward(request, response);
+            return;
+        }
+
+        int cartId;
+        
+        try {
+            cartId = Integer.parseInt(cartIdParam);
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Invalid cart ID.");
+            RequestDispatcher dispatcher = request.getRequestDispatcher("views/cart.jsp");
+            dispatcher.forward(request, response);
+            return;
+        }
+
+        if (cartId <= 0) {
+            request.setAttribute("error", "Invalid cart ID.");
+            RequestDispatcher dispatcher = request.getRequestDispatcher("views/cart.jsp");
+            dispatcher.forward(request, response);
+            return;
+        }
+
+        boolean success = shoppingCartDAO.removeFromCart(userId, cartId);
 
         if (success) {
             response.sendRedirect("cart");
         } else {
             request.setAttribute("error", "Failed to remove item from cart.");
-            RequestDispatcher dispatcher = request.getRequestDispatcher("views/error.jsp");
+            RequestDispatcher dispatcher = request.getRequestDispatcher("views/cart.jsp");
             dispatcher.forward(request, response);
         }
     }
@@ -103,8 +166,9 @@ public class ShoppingCartController extends HttpServlet {
             response.sendRedirect("cart");
         } else {
             request.setAttribute("error", "Failed to clear cart.");
-            RequestDispatcher dispatcher = request.getRequestDispatcher("views/error.jsp");
+            RequestDispatcher dispatcher = request.getRequestDispatcher("views/cart.jsp");
             dispatcher.forward(request, response);
         }
     }
-}
+} 
+
