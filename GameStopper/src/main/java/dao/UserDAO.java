@@ -14,8 +14,8 @@ public class UserDAO {
 		try(Connection connection = DatabaseConnection.getInstance().getConnection();
 			PreparedStatement pstmt = connection.prepareStatement(query)){
 			
-			pstmt.setString(1, user.getName());
-			pstmt.setString(2, user.getEmail());
+			pstmt.setString(1, user.getName().trim());
+			pstmt.setString(2, user.getEmail().trim());
 			pstmt.setString(3, user.getPassword());
 			pstmt.setString(4, user.getRole());
 			
@@ -65,7 +65,7 @@ public class UserDAO {
         try (Connection connection = DatabaseConnection.getInstance().getConnection();
              PreparedStatement pstmt = connection.prepareStatement(query)) {
 
-            pstmt.setString(1, email);
+            pstmt.setString(1, email.trim());
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {

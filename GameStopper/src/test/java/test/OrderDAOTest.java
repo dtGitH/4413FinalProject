@@ -84,7 +84,7 @@ public class OrderDAOTest {
     @Test
     @DisplayName("Test Get Orders By User ID - Success")
     void testGetOrdersByUserIdSuccess() {
-        int orderId = orderDAO.createOrder(1);
+        orderDAO.createOrder(1);
         List<Order> orders = orderDAO.getOrdersByUserId(1);
         assertTrue(orders.size() > 0, "User should have at least one order.");
     }
