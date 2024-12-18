@@ -16,7 +16,11 @@ import java.util.List;
 
 @WebServlet("/cart")
 public class ShoppingCartController extends HttpServlet {
-    private ShoppingCartDAO shoppingCartDAO;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private ShoppingCartDAO shoppingCartDAO;
     
     public ShoppingCartController() {
     	this.shoppingCartDAO = DAOFactory.getShoppingCartDAO();
