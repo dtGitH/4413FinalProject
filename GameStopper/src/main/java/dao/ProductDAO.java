@@ -1,70 +1,46 @@
 package dao;
 
 import model.Product;
-import util.DatabaseConnection;
 
-import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 
-public class ProductDAO {
+public interface ProductDAO {
 
-    // Get all products
-    public List<Product> getAllProducts() {
-        List<Product> products = new ArrayList<>();
-        String query = "SELECT * FROM Products";
+	// Retrieve all products from the database
+	List<Product> getAllProducts();
 
-        try (Connection connection = DatabaseConnection.getConnection();
-             Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
+	// Retrieve products by category
+	List<Product> getProductsByCategory(String category);
 
-            while (rs.next()) {
-                Product product = new Product();
-                product.setId(rs.getInt("id"));
-                product.setName(rs.getString("name"));
-                product.setDescription(rs.getString("description"));
-                product.setPrice(rs.getDouble("price"));
-                product.setStock(rs.getInt("stock"));
-                product.setGenre(rs.getString("genre")); // New field
-                product.setDevice(rs.getString("device")); // New field
-                product.setImageUrl(rs.getString("image_url"));
-                products.add(product);
-            }
+	// Retrieve products by platform
+	List<Product> getProductsByPlatform(String platform);
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+	// Retrieve a product by its ID
+	Product getProductById(int productId);
 
-        return products;
-    }
+	// Search products by name or description
+	List<Product> searchProducts(String keyword);
 
-    // Get product by ID
-    public Product getProductById(int id) {
-        Product product = null;
-        String query = "SELECT * FROM Products WHERE id = ?";
+	// List products ordered by price
+	List<Product> listProductsByPrice(String sortOrder);
 
-        try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = connection.prepareStatement(query)) {
-             
-            pstmt.setInt(1, id);
-            ResultSet rs = pstmt.executeQuery();
+	// Add a new product to the database
+	boolean addProduct(Product product);
 
-            if (rs.next()) {
-                product = new Product();
-                product.setId(rs.getInt("id"));
-                product.setName(rs.getString("name"));
-                product.setDescription(rs.getString("description"));
-                product.setPrice(rs.getDouble("price"));
-                product.setStock(rs.getInt("stock"));
-                product.setGenre(rs.getString("genre")); // New field
-                product.setDevice(rs.getString("device")); // New field
-                product.setImageUrl(rs.getString("image_url"));
-            }
+	// Update product details in the database
+	boolean updateProduct(Product product);
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+	// Delete a product from the database by ID
+	boolean deleteProduct(int productId);
 
-        return product;
-    }
+	// Reduce inventory for a product
+	boolean reduceInventory(int productId, int quantity);
+
+	// Restore stock for a product
+	boolean restoreStock(int productId, int quantity);
+
+	// Update product quantity directly (can be used for add/remove/update)
+	boolean updateProductQuantity(int productId, int quantity);
+	
+	
 }

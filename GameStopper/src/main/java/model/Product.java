@@ -1,77 +1,108 @@
 package model;
 
 public class Product {
-    private int id;
-    private String name;
-    private String description;
-    private double price;
-    private int stock;
-    private String genre;         // New field for game genre
-    private String device;        // New field for platform (PS5, Xbox, etc.)
-    private String imageUrl;
+	private int productId;
+	private String name;
+	private String description;
+	private String category;
+	private String platform;
+	private String brand;
+	private String releaseDate;
+	private double price;
+	private int quantity;
+	private String imageUrl;
+	private int cartQuantity; // Custom field for the user's cart quantity
 
-    // Getters and Setters
-    public int getId() {
-        return id;
-    }
+	public Product() {
+	}
 
-    public void setId(int id) {
-        this.id = id;
-    }
+	public int getProductId() {
+		return productId;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public void setProductId(int productId) {
+		this.productId = productId;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public String getDescription() {
-        return description;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+	public String getDescription() {
+		return description;
+	}
 
-    public double getPrice() {
-        return price;
-    }
+	public void setDescription(String description) {
+		this.description = description;
+	}
 
-    public void setPrice(double price) {
-        this.price = price;
-    }
+	public String getCategory() {
+		return category;
+	}
 
-    public int getStock() {
-        return stock;
-    }
+	public void setCategory(String category) {
+		this.category = category;
+	}
 
-    public void setStock(int stock) {
-        this.stock = stock;
-    }
+	public String getPlatform() {
+		return platform;
+	}
 
-    public String getGenre() {
-        return genre;
-    }
+	public void setPlatform(String platform) {
+		this.platform = platform;
+	}
 
-    public void setGenre(String genre) {
-        this.genre = genre;
-    }
+	public String getBrand() {
+		return brand;
+	}
 
-    public String getDevice() {
-        return device;
-    }
+	public void setBrand(String brand) {
+		this.brand = brand;
+	}
 
-    public void setDevice(String device) {
-        this.device = device;
-    }
+	public String getReleaseDate() {
+		return releaseDate;
+	}
 
-    public String getImageUrl() {
-        return imageUrl;
-    }
+	public void setReleaseDate(String releaseDate) {
+		this.releaseDate = releaseDate;
+	}
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
+	public double getPrice() {
+		return price;
+	}
+
+	public void setPrice(double price) {
+		this.price = price;
+	}
+
+	public int getQuantity() {
+		return quantity;
+	}
+
+	public void setQuantity(int quantity) {
+		this.quantity = quantity;
+	}
+
+	public String getImageUrl() {
+		return imageUrl;
+	}
+
+	public void setImageUrl(String imageUrl) {
+		this.imageUrl = imageUrl;
+	}
+
+	public int getCartQuantity() {
+		return cartQuantity;
+	}
+
+	public void setCartQuantity(int cartQuantity) {
+		this.cartQuantity = cartQuantity;
+	}
+
+	
 }

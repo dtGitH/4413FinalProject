@@ -1,58 +1,51 @@
 package model;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ShoppingCart {
-	private int id;
-	private int userId;
-	private int productId;
-	private int quantity;
-	private String productName;
-	private double price;
-	
-	public int getId() {
-		return id;
+	private Map<Integer, CartItem> items;
+
+	public ShoppingCart() {
+		items = new HashMap<>();
 	}
-	
-	public void setId(int id) {
-        this.id = id;
-    }
 
-    public int getUserId() {
-        return userId;
-    }
+	public void addProduct(Product product, int quantity) {
+		if (items.containsKey(product.getProductId())) {
+			CartItem existingItem = items.get(product.getProductId());
+			existingItem.setQuantity(existingItem.getQuantity() + quantity);
+		} else {
+			items.put(product.getProductId(), new CartItem(product, quantity));
+		}
+	}
 
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
+	public void updateQuantity(int productId, int quantity) {
+		if (items.containsKey(productId)) {
+			if (quantity > 0) {
+				items.get(productId).setQuantity(quantity);
+			} else {
+				items.remove(productId);
+			}
+		}
+	}
 
-    public int getProductId() {
-        return productId;
-    }
+	public void removeProduct(int productId) {
+		items.remove(productId);
+	}
 
-    public void setProductId(int productId) {
-        this.productId = productId;
-    }
+	public void clear() {
+		items.clear();
+	}
 
-    public int getQuantity() {
-        return quantity;
-    }
+	public Map<Integer, CartItem> getItems() {
+		return items;
+	}
 
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
+	public double getTotalPrice() {
+		return items.values().stream().mapToDouble(CartItem::getSubTotal).sum();
+	}
 
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
-    }
+	public int getTotalItems() {
+		return items.size();
+	}
 }
