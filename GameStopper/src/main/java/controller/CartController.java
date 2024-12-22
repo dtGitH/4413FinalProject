@@ -2,126 +2,261 @@ package controller;
 
 import dao.CartDAO;
 import dao.CartDAOImpl;
-import model.Product;
+import dao.ProductDAO;
+import dao.ProductDAOImpl;
 import model.CartItem;
+import model.Product;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 @WebServlet("/cart")
 public class CartController extends HttpServlet {
-    private CartDAO cartDAO;
+	private CartDAO cartDAO;
+	private ProductDAO productDAO;
 
-    @Override
-    public void init() {
-        cartDAO = new CartDAOImpl();
-    }
+	/**
+	 * Initializes the CartDAO and ProductDAO objects for the CartController.
+	 */
+	@Override
+	public void init() {
+		cartDAO = new CartDAOImpl();
+		productDAO = new ProductDAOImpl();
+	}
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        List<CartItem> cartItems = getCartItems(session);
+	/**
+	 * Handles GET requests for displaying the cart view. Retrieves cart items
+	 * either from the session or the database based on whether the user is logged
+	 * in.
+	 *
+	 * @param request  the HttpServletRequest object containing client request
+	 * @param response the HttpServletResponse object for the servlet's response
+	 * @throws ServletException if a servlet-specific error occurs
+	 * @throws IOException      if an I/O error occurs
+	 */
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		HttpSession session = request.getSession();
+		List<CartItem> cartItems;
 
-        request.setAttribute("cartItems", cartItems);
-        request.getRequestDispatcher("/cart.jsp").forward(request, response);
-    }
+		Integer userId = (Integer) session.getAttribute("user_id");
+		if (userId != null) {
+			cartItems = cartDAO.getCartItemsByUser(userId);
+		} else {
+			cartItems = getCartItemsFromSession(session);
+		}
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        List<CartItem> cartItems = getCartItems(session);
+		double totalPrice = cartItems.stream().mapToDouble(CartItem::getSubtotal).sum();
+		request.setAttribute("cartItems", cartItems);
+		request.setAttribute("totalPrice", totalPrice);
 
-        String action = request.getParameter("action");
-        int productId = Integer.parseInt(request.getParameter("productId"));
+		request.getRequestDispatcher("cart.jsp").forward(request, response);
+	}
 
-        switch (action) {
-            case "add":
-                handleAddToCart(request, cartItems, productId);
-                break;
+	/**
+	 * Handles POST requests for performing cart-related actions such as adding,
+	 * updating, or removing items.
+	 *
+	 * @param request  the HttpServletRequest object containing client request
+	 * @param response the HttpServletResponse object for the servlet's response
+	 * @throws ServletException if a servlet-specific error occurs
+	 * @throws IOException      if an I/O error occurs
+	 */
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		HttpSession session = request.getSession();
+		Integer userId = (Integer) session.getAttribute("user_id");
+		String action = request.getParameter("action");
 
-            case "update":
-                handleUpdateCartItem(request, cartItems, productId);
-                break;
+		if (action == null) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Action is required.");
+			return;
+		}
 
-            case "delete":
-                handleDeleteCartItem(cartItems, productId);
-                break;
+		try {
+			switch (action) {
+			case "add":
+				handleAddToCart(request, session, userId);
+				break;
+			case "update":
+				handleUpdateCart(request, session, userId);
+				break;
+			case "remove":
+				handleRemoveFromCart(request, session, userId);
+				break;
+			case "clear":
+				handleClearCart(session, userId);
+				break;
+			default:
+				response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid action.");
+				return;
+			}
+		} catch (Exception e) {
+			request.setAttribute("errorMessage", e.getMessage());
+			request.getRequestDispatcher("error.jsp").forward(request, response);
+			return;
+		}
 
-            case "clear":
-                handleClearCart(cartItems);
-                break;
-        }
+		response.sendRedirect("cart");
+	}
 
-        response.sendRedirect(request.getContextPath() + "/cart");
-    }
+	/**
+	 * Handles adding a product to the cart. If the user is logged in, it updates
+	 * the cart in the database; otherwise, it updates the session-based cart.
+	 *
+	 * @param request the HttpServletRequest object containing product and quantity
+	 *                data
+	 * @param session the HttpSession object for the current session
+	 * @param userId  the ID of the logged-in user, or null if the user is not
+	 *                logged in
+	 * @throws IOException if an I/O error occurs
+	 */
+	private void handleAddToCart(HttpServletRequest request, HttpSession session, Integer userId) throws IOException {
+		int productId = Integer.parseInt(request.getParameter("productId"));
+		int quantityToAdd = Integer.parseInt(request.getParameter("quantity"));
 
-    private void handleAddToCart(HttpServletRequest request, List<CartItem> cartItems, int productId) {
-        int quantityToAdd = Integer.parseInt(request.getParameter("quantity"));
-        Product productToAdd = cartDAO.getProductById(productId);
+		Product product = productDAO.getProductById(productId);
+		if (product == null || product.getQuantity() < quantityToAdd) {
+			throw new IOException("Insufficient stock for product ID: " + productId);
+		}
 
-        if (productToAdd != null && cartDAO.isStockAvailable(productId, quantityToAdd)) {
-            CartItem existingItem = findCartItem(cartItems, productId);
+		if (userId != null) {
+			CartItem existingItem = cartDAO.getCartItemByUserAndProduct(userId, productId);
+			if (existingItem != null) {
+				int newQuantity = existingItem.getQuantity() + quantityToAdd;
+				cartDAO.updateCartItemQuantity(existingItem.getId(), newQuantity);
+			} else {
+				CartItem newItem = new CartItem(0, userId, productId, product, quantityToAdd);
+				cartDAO.addCartItem(newItem);
+			}
+		} else {
+			List<CartItem> cartItems = getCartItemsFromSession(session);
+			CartItem existingItem = findCartItem(cartItems, productId);
+			if (existingItem != null) {
+				existingItem.setQuantity(existingItem.getQuantity() + quantityToAdd);
+			} else {
+				cartItems.add(new CartItem(0, 0, productId, product, quantityToAdd));
+			}
+		}
 
-            if (existingItem != null) {
-                existingItem.setQuantity(existingItem.getQuantity() + quantityToAdd);
-            } else {
-                CartItem newItem = new CartItem(productToAdd, quantityToAdd);
-                cartItems.add(newItem);
-            }
-            cartDAO.addToCart(productId, quantityToAdd);
-        }
-    }
+		productDAO.reduceInventory(productId, quantityToAdd);
+	}
 
-    private void handleUpdateCartItem(HttpServletRequest request, List<CartItem> cartItems, int productId) {
-        int newQuantity = Integer.parseInt(request.getParameter("quantity"));
-        CartItem itemToUpdate = findCartItem(cartItems, productId);
+	/**
+	 * Handles updating the quantity of a product in the cart. Adjusts the inventory
+	 * based on the old and new quantities.
+	 *
+	 * @param request the HttpServletRequest object containing updated quantity data
+	 * @param session the HttpSession object for the current session
+	 * @param userId  the ID of the logged-in user, or null if the user is not
+	 *                logged in
+	 */
+	private void handleUpdateCart(HttpServletRequest request, HttpSession session, Integer userId) {
+		int productId = Integer.parseInt(request.getParameter("productId"));
+		int newQuantity = Integer.parseInt(request.getParameter("quantity"));
 
-        if (itemToUpdate != null) {
-            int oldQuantity = itemToUpdate.getQuantity();
-            if (cartDAO.isStockAvailable(productId, newQuantity - oldQuantity)) {
-                itemToUpdate.setQuantity(newQuantity);
-                cartDAO.updateCartItemQuantity(productId, newQuantity, oldQuantity);
-            }
-        }
-    }
+		if (userId != null) {
+			CartItem existingItem = cartDAO.getCartItemByUserAndProduct(userId, productId);
+			if (existingItem != null) {
+				int oldQuantity = existingItem.getQuantity();
+				cartDAO.updateCartItemQuantity(existingItem.getId(), newQuantity);
+				productDAO.adjustInventory(productId, oldQuantity - newQuantity);
+			}
+		} else {
+			List<CartItem> cartItems = getCartItemsFromSession(session);
+			CartItem existingItem = findCartItem(cartItems, productId);
+			if (existingItem != null) {
+				int oldQuantity = existingItem.getQuantity();
+				existingItem.setQuantity(newQuantity);
+				productDAO.adjustInventory(productId, oldQuantity - newQuantity);
+			}
+		}
+	}
 
-    private void handleDeleteCartItem(List<CartItem> cartItems, int productId) {
-        CartItem itemToDelete = findCartItem(cartItems, productId);
-        if (itemToDelete != null) {
-            cartDAO.removeFromCart(productId, itemToDelete.getQuantity());
-            cartItems.remove(itemToDelete);
-        }
-    }
+	/**
+	 * Handles removing a product from the cart. If the user is logged in, it
+	 * updates the database; otherwise, it updates the session-based cart.
+	 *
+	 * @param request the HttpServletRequest object containing product data to
+	 *                remove
+	 * @param session the HttpSession object for the current session
+	 * @param userId  the ID of the logged-in user, or null if the user is not
+	 *                logged in
+	 */
+	private void handleRemoveFromCart(HttpServletRequest request, HttpSession session, Integer userId) {
+		int productId = Integer.parseInt(request.getParameter("productId"));
 
-    private void handleClearCart(List<CartItem> cartItems) {
-        for (CartItem item : cartItems) {
-            cartDAO.removeFromCart(item.getProduct().getProductId(), item.getQuantity());
-        }
-        cartItems.clear();
-    }
+		if (userId != null) {
+			CartItem existingItem = cartDAO.getCartItemByUserAndProduct(userId, productId);
+			if (existingItem != null) {
+				cartDAO.removeCartItem(existingItem.getId());
+				productDAO.increaseInventory(productId, existingItem.getQuantity());
+			}
+		} else {
+			List<CartItem> cartItems = getCartItemsFromSession(session);
+			CartItem existingItem = findCartItem(cartItems, productId);
+			if (existingItem != null) {
+				cartItems.remove(existingItem);
+				productDAO.increaseInventory(productId, existingItem.getQuantity());
+			}
+		}
+	}
 
-    private CartItem findCartItem(List<CartItem> cartItems, int productId) {
-        return cartItems.stream()
-                .filter(item -> item.getProduct().getProductId() == productId)
-                .findFirst()
-                .orElse(null);
-    }
+	/**
+	 * Handles clearing the entire cart. If the user is logged in, it clears the
+	 * cart in the database; otherwise, it clears the session-based cart.
+	 *
+	 * @param session the HttpSession object for the current session
+	 * @param userId  the ID of the logged-in user, or null if the user is not
+	 *                logged in
+	 */
+	private void handleClearCart(HttpSession session, Integer userId) {
+		if (userId != null) {
+			List<CartItem> cartItems = cartDAO.getCartItemsByUser(userId);
+			for (CartItem item : cartItems) {
+				productDAO.increaseInventory(item.getProductId(), item.getQuantity());
+			}
+			cartDAO.clearCart(userId);
+		} else {
+			List<CartItem> cartItems = getCartItemsFromSession(session);
+			if (cartItems != null) {
+				for (CartItem item : cartItems) {
+					productDAO.increaseInventory(item.getProductId(), item.getQuantity());
+				}
+				cartItems.clear();
+			}
+		}
+	}
 
-    private List<CartItem> getCartItems(HttpSession session) {
-        List<CartItem> cartItems = (List<CartItem>) session.getAttribute("cartItems");
-        if (cartItems == null) {
-            cartItems = new ArrayList<>();
-            session.setAttribute("cartItems", cartItems);
-        }
-        return cartItems;
-    }
+	/**
+	 * Retrieves the cart items stored in the session.
+	 *
+	 * @param session the HttpSession object for the current session
+	 * @return the list of cart items stored in the session
+	 */
+	private List<CartItem> getCartItemsFromSession(HttpSession session) {
+		List<CartItem> cartItems = (List<CartItem>) session.getAttribute("cartItems");
+		if (cartItems == null) {
+			cartItems = new ArrayList<>();
+			session.setAttribute("cartItems", cartItems);
+		}
+		return cartItems;
+	}
+
+	/**
+	 * Finds a cart item in the list by product ID.
+	 *
+	 * @param cartItems the list of cart items
+	 * @param productId the product ID to search for
+	 * @return the CartItem object if found, or null if not found
+	 */
+	private CartItem findCartItem(List<CartItem> cartItems, int productId) {
+		return cartItems.stream().filter(item -> item.getProductId() == productId).findFirst().orElse(null);
+	}
 }

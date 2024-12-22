@@ -26,6 +26,9 @@
 				<p>
 					Your payment was successful. Your order ID is <strong>${order.checkoutId}</strong>.
 				</p>
+				<p>
+					Shipping to: <strong>${fn:escapeXml(order.shippingAddress)}</strong>
+				</p>
 			</div>
 			<h2>Order Details</h2>
 			<table class="order-details">

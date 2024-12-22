@@ -12,19 +12,22 @@
 </head>
 <body>
 
+	<!-- Include Header -->
 	<jsp:include page="header.jsp" />
 
 	<div class="profile-container">
 		<div class="profile-main">
 			<h2 class="profile-title">Personal Information</h2>
 
-			<c:if test="${not empty error}">
-				<div class="error-message">${error}</div>
+			<!-- Display Error or Success Messages -->
+			<c:if test="${not empty errorMessage}">
+				<div class="error-message">${errorMessage}</div>
 			</c:if>
-			<c:if test="${not empty message}">
-				<div class="success-message">${message}</div>
+			<c:if test="${not empty successMessage}">
+				<div class="success-message">${successMessage}</div>
 			</c:if>
 
+			<!-- Profile Form -->
 			<form method="post"
 				action="${pageContext.request.contextPath}/profile"
 				class="profile-form">
@@ -39,19 +42,18 @@
 				</div>
 
 				<div class="input-group">
-					<label for="email">Email Address</label> <input type="email"
-						id="email" name="email" value="${sessionScope.user.email}"
-						readonly>
+					<label for="email">Email</label> <input type="email" id="email"
+						name="email" value="${profile.email}" readonly>
 				</div>
 
 				<div class="input-group">
-					<label for="phone">Phone Number</label> <input type="text"
-						id="phone" name="phone" value="${profile.phone}">
+					<label for="phone">Phone</label> <input type="text" id="phone"
+						name="phone" value="${profile.phone}">
 				</div>
 
 				<div class="input-group">
 					<label for="dob">Date of Birth</label> <input type="date" id="dob"
-						name="dob" value="${profile.dob}">
+						name="dob" value="${profile.dob != null ? profile.dob : ''}">
 				</div>
 
 				<div class="input-group">
@@ -65,8 +67,13 @@
 				</div>
 
 				<div class="input-group">
-					<label for="address">Shipping Address</label>
+					<label for="address">Address</label>
 					<textarea id="address" name="address">${profile.address}</textarea>
+				</div>
+
+				<div class="input-group">
+					<label for="billingAddress">Billing Address</label>
+					<textarea id="billingAddress" name="billingAddress">${profile.billingAddress}</textarea>
 				</div>
 
 				<div class="input-group">
@@ -79,6 +86,7 @@
 		</div>
 	</div>
 
+	<!-- Include Footer -->
 	<jsp:include page="footer.jsp" />
 </body>
 </html>

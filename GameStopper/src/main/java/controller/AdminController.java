@@ -13,237 +13,308 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import dao.ProductDAO;
+import dao.ProductDAOImpl;
+import dao.UserProfileDAO;
+import dao.UserProfileDAOImpl;
+import dao.CheckoutDAO;
+import dao.CheckoutDAOImpl;
 
+/**
+ * AdminController handles administrative tasks such as managing products,
+ * users, and orders.
+ */
 @WebServlet("/admin")
 public class AdminController extends HttpServlet {
-    private AdminDAO adminDAO;
+	private AdminDAO adminDAO;
 
-    @Override
-    public void init() {
-        adminDAO = new AdminDAOImpl();
-    }
+	/**
+	 * Initializes the DAO objects for the AdminController.
+	 */
+	@Override
+	public void init() {
+		ProductDAO productDAO = new ProductDAOImpl();
+		UserProfileDAO userProfileDAO = new UserProfileDAOImpl();
+		CheckoutDAO checkoutDAO = new CheckoutDAOImpl();
+		adminDAO = new AdminDAOImpl(productDAO, userProfileDAO, checkoutDAO);
+	}
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+	/**
+	 * Handles GET requests for displaying the admin dashboard.
+	 *
+	 * @param request  the HttpServletRequest object
+	 * @param response the HttpServletResponse object
+	 * @throws ServletException if a servlet-specific error occurs
+	 * @throws IOException      if an I/O error occurs
+	 */
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		try {
+			String firstNameFilter = request.getParameter("firstName");
+			String lastNameFilter = request.getParameter("lastName");
+			String userUuidFilter = request.getParameter("userUuid");
+			String statusFilter = request.getParameter("status");
+			String dateFilter = request.getParameter("date");
 
-        try {
-            // Get optional filters
-            String customerFilter = request.getParameter("customer");
-            String productFilter = request.getParameter("product");
-            String dateFilter = request.getParameter("date");
+			List<Checkout> salesHistory = adminDAO.getFilteredCheckouts(firstNameFilter, lastNameFilter, userUuidFilter,
+					statusFilter, dateFilter);
+			List<UserProfile> customers = adminDAO.getAllUsers();
+			List<Product> products = adminDAO.getAllProducts();
 
-            // Fetch data for the dashboard
-            List<Checkout> salesHistory = adminDAO.getFilteredCheckouts(customerFilter, productFilter, dateFilter);
-            List<UserProfile> customers = adminDAO.getAllUsers();
-            List<Product> products = adminDAO.getAllProducts();
+			request.setAttribute("orders", salesHistory);
+			request.setAttribute("customers", customers);
+			request.setAttribute("products", products);
 
-            // Set attributes for the JSP
-            request.setAttribute("orders", salesHistory);
-            request.setAttribute("customers", customers);
-            request.setAttribute("products", products);
+			request.getRequestDispatcher("/admin.jsp").forward(request, response);
+		} catch (Exception e) {
+			e.printStackTrace();
+			request.setAttribute("error", "Failed to load the admin dashboard.");
+			request.getRequestDispatcher("/admin.jsp").forward(request, response);
+		}
+	}
 
-            request.getRequestDispatcher("/admin.jsp").forward(request, response);
+	/**
+	 * Handles POST requests for performing admin actions.
+	 *
+	 * @param request  the HttpServletRequest object
+	 * @param response the HttpServletResponse object
+	 * @throws ServletException if a servlet-specific error occurs
+	 * @throws IOException      if an I/O error occurs
+	 */
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String action = request.getParameter("action");
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("error", "Failed to load the dashboard. Please try again.");
-            request.getRequestDispatcher("/admin.jsp").forward(request, response);
-        }
-    }
+		if (action == null || action.isEmpty()) {
+			response.sendRedirect("admin");
+			return;
+		}
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+		try {
+			switch (action.split("-")[0]) {
+			case "filterSalesHistory":
+				handleFilterSalesHistory(request, response);
+				break;
+			case "updateUser":
+				handleUpdateUser(request, response);
+				break;
+			case "updateProduct":
+				handleUpdateProduct(request, response);
+				break;
+			case "addProduct":
+				handleAddProduct(request, response);
+				break;
+			case "deleteProduct":
+				handleDeleteProduct(request, response);
+				break;
+			case "updateCheckoutStatus":
+				handleUpdateCheckoutStatus(request, response);
+				break;
+			default:
+				response.sendRedirect("admin");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			request.setAttribute("error", "An error occurred while processing your request.");
+			request.getRequestDispatcher("/admin.jsp").forward(request, response);
+		}
+	}
 
-        String action = request.getParameter("action");
+	/**
+	 * Filters sales history based on request parameters and updates the admin
+	 * dashboard view.
+	 */
+	private void handleFilterSalesHistory(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		try {
+			String firstName = request.getParameter("firstName");
+			String lastName = request.getParameter("lastName");
+			String userUuid = request.getParameter("userUuid");
+			String status = request.getParameter("status");
+			String date = request.getParameter("date");
 
-        if (action == null || action.isEmpty()) {
-            response.sendRedirect("admin");
-            return;
-        }
+			List<Checkout> filteredSales = adminDAO.getFilteredCheckouts(firstName, lastName, userUuid, status, date);
+			List<UserProfile> customers = adminDAO.getAllUsers();
+			List<Product> products = adminDAO.getAllProducts();
 
-        try {
-            switch (action) {
-                case "updateUser":
-                    updateUserProfile(request, response);
-                    break;
+			request.setAttribute("orders", filteredSales);
+			request.setAttribute("customers", customers);
+			request.setAttribute("products", products);
 
-                case "updateProduct":
-                    updateProduct(request, response);
-                    break;
+			request.getRequestDispatcher("/admin.jsp").forward(request, response);
+		} catch (Exception e) {
+			e.printStackTrace();
+			request.setAttribute("error", "Failed to filter sales history.");
+			request.getRequestDispatcher("/admin.jsp").forward(request, response);
+		}
+	}
 
-                case "addProduct":
-                    addProduct(request, response);
-                    break;
+	/**
+	 * Updates a user profile based on request parameters.
+	 */
+	private void handleUpdateUser(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		try {
+			String actionParam = request.getParameter("action");
+			if (actionParam == null || !actionParam.startsWith("updateUser-")) {
+				throw new IllegalArgumentException("Invalid action parameter: " + actionParam);
+			}
 
-                case "deleteProduct":
-                    deleteProduct(request, response);
-                    break;
+			String userUuid = actionParam.substring("updateUser-".length());
+			String firstName = request.getParameter("firstName-" + userUuid);
+			String lastName = request.getParameter("lastName-" + userUuid);
+			String email = request.getParameter("email-" + userUuid);
+			String phone = request.getParameter("phone-" + userUuid);
+			String address = request.getParameter("address-" + userUuid);
 
-                case "updateCheckoutStatus":
-                    updateCheckoutStatus(request, response);
-                    break;
+			UserProfile userProfile = new UserProfile();
+			userProfile.setUserUuid(userUuid);
+			userProfile.setFirstName(firstName);
+			userProfile.setLastName(lastName);
+			userProfile.setEmail(email);
+			userProfile.setPhone(phone);
+			userProfile.setAddress(address);
 
-                default:
-                    response.sendRedirect("admin");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("error", "An error occurred while processing your request.");
-            request.getRequestDispatcher("/admin.jsp").forward(request, response);
-        }
-    }
+			boolean success = adminDAO.updateUserProfile(userProfile);
+			if (success) {
+				response.sendRedirect("admin?success=User profile updated successfully.");
+			} else {
+				response.sendRedirect("admin?error=Failed to update user profile.");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.sendRedirect("admin?error=Failed to update user. Error: " + e.getMessage());
+		}
+	}
 
-    /**
-     * Updates a user profile based on the form inputs.
-     */
-    private void updateUserProfile(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        try {
-            String userUuid = request.getParameter("userUuid");
-            String firstName = request.getParameter("firstName");
-            String lastName = request.getParameter("lastName");
-            String phone = request.getParameter("phone");
-            String address = request.getParameter("address");
+	/**
+	 * Updates a product based on request parameters.
+	 */
+	private void handleUpdateProduct(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		try {
+			String actionParam = request.getParameter("action");
+			if (actionParam == null || !actionParam.startsWith("updateProduct-")) {
+				throw new IllegalArgumentException("Invalid action parameter: " + actionParam);
+			}
 
-            if (userUuid == null || userUuid.isEmpty()) {
-                throw new IllegalArgumentException("User UUID is required.");
-            }
+			int productId = Integer.parseInt(actionParam.substring("updateProduct-".length()));
+			String name = request.getParameter("name-" + productId);
+			String description = request.getParameter("description-" + productId);
+			String category = request.getParameter("category-" + productId);
+			String platform = request.getParameter("platform-" + productId);
+			String brand = request.getParameter("brand-" + productId);
+			double price = Double.parseDouble(request.getParameter("price-" + productId));
+			int quantity = Integer.parseInt(request.getParameter("quantity-" + productId));
+			String releaseDate = request.getParameter("releaseDate-" + productId);
 
-            UserProfile userProfile = new UserProfile();
-            userProfile.setUserUuid(userUuid);
-            userProfile.setFirstName(firstName);
-            userProfile.setLastName(lastName);
-            userProfile.setPhone(phone);
-            userProfile.setAddress(address);
+			Product product = new Product();
+			product.setProductId(productId);
+			product.setName(name);
+			product.setDescription(description);
+			product.setCategory(category);
+			product.setPlatform(platform);
+			product.setBrand(brand);
+			product.setPrice(price);
+			product.setQuantity(quantity);
+			product.setReleaseDate(releaseDate);
 
-            boolean success = adminDAO.updateUserProfile(userProfile);
-            handleRedirect(response, success, "User profile updated successfully.", "Failed to update user profile.");
-        } catch (IllegalArgumentException e) {
-            response.sendRedirect("admin?error=" + e.getMessage());
-        }
-    }
+			boolean success = adminDAO.updateProduct(product);
+			if (success) {
+				response.sendRedirect("admin?success=Product updated successfully.");
+			} else {
+				response.sendRedirect("admin?error=Failed to update product.");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.sendRedirect("admin?error=Failed to update product. Error: " + e.getMessage());
+		}
+	}
 
-    /**
-     * Updates the product information based on the form inputs.
-     */
-    private void updateProduct(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        try {
-            int productId = parseInt(request.getParameter("productId"), "Invalid product ID.");
-            String name = request.getParameter("name");
-            String description = request.getParameter("description");
-            String category = request.getParameter("category");
-            String platform = request.getParameter("platform");
-            String brand = request.getParameter("brand");
-            double price = parseDouble(request.getParameter("price"), "Invalid price value.");
-            int quantity = parseInt(request.getParameter("quantity"), "Invalid quantity value.");
-            String imageUrl = request.getParameter("imageUrl");
+	/**
+	 * Adds a new product based on request parameters.
+	 */
+	private void handleAddProduct(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		try {
+			String name = request.getParameter("name");
+			String description = request.getParameter("description");
+			String category = request.getParameter("category");
+			String platform = request.getParameter("platform");
+			String brand = request.getParameter("brand");
+			double price = Double.parseDouble(request.getParameter("price"));
+			int quantity = Integer.parseInt(request.getParameter("quantity"));
+			String releaseDate = request.getParameter("releaseDate");
 
-            Product product = new Product();
-            product.setProductId(productId);
-            product.setName(name);
-            product.setDescription(description);
-            product.setCategory(category);
-            product.setPlatform(platform);
-            product.setBrand(brand);
-            product.setPrice(price);
-            product.setQuantity(quantity);
-            product.setImageUrl(imageUrl);
+			Product product = new Product();
+			product.setName(name);
+			product.setDescription(description);
+			product.setCategory(category);
+			product.setPlatform(platform);
+			product.setBrand(brand);
+			product.setPrice(price);
+			product.setQuantity(quantity);
+			product.setReleaseDate(releaseDate);
 
-            boolean success = adminDAO.updateProduct(product);
-            handleRedirect(response, success, "Product updated successfully.", "Failed to update product.");
-        } catch (IllegalArgumentException e) {
-            response.sendRedirect("admin?error=" + e.getMessage());
-        }
-    }
+			boolean success = adminDAO.addProduct(product);
+			if (success) {
+				response.sendRedirect("admin?success=Product added successfully.");
+			} else {
+				response.sendRedirect("admin?error=Failed to add product.");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.sendRedirect("admin?error=Failed to add product. Error: " + e.getMessage());
+		}
+	}
 
-    /**
-     * Adds a new product to the system.
-     */
-    private void addProduct(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        try {
-            String name = request.getParameter("name");
-            String description = request.getParameter("description");
-            String category = request.getParameter("category");
-            String platform = request.getParameter("platform");
-            String brand = request.getParameter("brand");
-            double price = parseDouble(request.getParameter("price"), "Invalid price value.");
-            int quantity = parseInt(request.getParameter("quantity"), "Invalid quantity value.");
-            String imageUrl = request.getParameter("imageUrl");
+	/**
+	 * Deletes a product based on request parameters.
+	 */
+	private void handleDeleteProduct(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		try {
+			int productId = Integer.parseInt(request.getParameter("productId"));
 
-            Product product = new Product();
-            product.setName(name);
-            product.setDescription(description);
-            product.setCategory(category);
-            product.setPlatform(platform);
-            product.setBrand(brand);
-            product.setPrice(price);
-            product.setQuantity(quantity);
-            product.setImageUrl(imageUrl);
+			boolean success = adminDAO.deleteProduct(productId);
+			redirectWithMessage(response, success, "Product deleted successfully.", "Failed to delete product.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.sendRedirect("admin?error=Failed to delete product.");
+		}
+	}
 
-            boolean success = adminDAO.addProduct(product);
-            handleRedirect(response, success, "Product added successfully.", "Failed to add product.");
-        } catch (IllegalArgumentException e) {
-            response.sendRedirect("admin?error=" + e.getMessage());
-        }
-    }
+	/**
+	 * Updates the checkout status of an order based on request parameters.
+	 */
+	private void handleUpdateCheckoutStatus(HttpServletRequest request, HttpServletResponse response)
+			throws IOException {
+		try {
+			int checkoutId = Integer.parseInt(request.getParameter("checkoutId"));
+			String status = request.getParameter("status");
 
-    /**
-     * Deletes a product from the system.
-     */
-    private void deleteProduct(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        try {
-            int productId = parseInt(request.getParameter("productId"), "Invalid product ID.");
-            boolean success = adminDAO.deleteProduct(productId);
-            handleRedirect(response, success, "Product deleted successfully.", "Failed to delete product.");
-        } catch (IllegalArgumentException e) {
-            response.sendRedirect("admin?error=" + e.getMessage());
-        }
-    }
+			boolean success = adminDAO.updateCheckoutStatus(checkoutId, status);
+			redirectWithMessage(response, success, "Order status updated successfully.",
+					"Failed to update order status.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.sendRedirect("admin?error=Failed to update order status.");
+		}
+	}
 
-    /**
-     * Updates the status of a checkout/order.
-     */
-    private void updateCheckoutStatus(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        try {
-            int checkoutId = parseInt(request.getParameter("checkoutId"), "Invalid checkout ID.");
-            String status = request.getParameter("status");
-
-            if (status == null || status.isEmpty()) {
-                throw new IllegalArgumentException("Status is required.");
-            }
-
-            boolean success = adminDAO.updateCheckoutStatus(checkoutId, status);
-            handleRedirect(response, success, "Order status updated successfully.", "Failed to update order status.");
-        } catch (IllegalArgumentException e) {
-            response.sendRedirect("admin?error=" + e.getMessage());
-        }
-    }
-
-    // Helper to parse integers with error messages
-    private int parseInt(String value, String errorMessage) {
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(errorMessage);
-        }
-    }
-
-    // Helper to parse doubles with error messages
-    private double parseDouble(String value, String errorMessage) {
-        try {
-            return Double.parseDouble(value);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(errorMessage);
-        }
-    }
-
-    // Helper to handle redirects based on success or failure
-    private void handleRedirect(HttpServletResponse response, boolean success, String successMessage, String errorMessage) throws IOException {
-        if (success) {
-            response.sendRedirect("admin?success=" + successMessage);
-        } else {
-            response.sendRedirect("admin?error=" + errorMessage);
-        }
-    }
+	/**
+	 * Redirects the response based on success or failure with appropriate messages.
+	 *
+	 * @param response       the HttpServletResponse object
+	 * @param success        boolean indicating operation success
+	 * @param successMessage success message string
+	 * @param errorMessage   error message string
+	 * @throws IOException if an I/O error occurs
+	 */
+	private void redirectWithMessage(HttpServletResponse response, boolean success, String successMessage,
+			String errorMessage) throws IOException {
+		if (success) {
+			response.sendRedirect("admin?success=" + successMessage);
+		} else {
+			response.sendRedirect("admin?error=" + errorMessage);
+		}
+	}
 }

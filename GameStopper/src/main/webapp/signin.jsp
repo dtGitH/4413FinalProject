@@ -46,9 +46,6 @@
 						id="password" name="password" placeholder="Enter your password"
 						required>
 					<button type="submit" class="continue-button">Log In</button>
-					<c:if test="${not empty error}">
-						<p class="error">${error}</p>
-					</c:if>
 				</form>
 
 				<!-- Redirect to Register -->

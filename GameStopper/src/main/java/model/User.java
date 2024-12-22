@@ -1,78 +1,158 @@
 package model;
 
+/**
+ * Represents a user in the system. The user can have a unique UUID, username, email,
+ * password, and role. This class is used for managing user-related information.
+ */
 public class User {
-	private int id;
-	private String uuid;
-	private String username;
-	private String email;
-	private String password;
-	private String role; // New role field
+    private int id; // The unique ID of the user in the database
+    private String uuid; // The unique UUID of the user
+    private String username; // The username of the user
+    private String email; // The email address of the user
+    private String password; // The password for the user's account
+    private String role; // The role of the user, e.g., "admin", "customer"
 
-	// Constructor for new users (without ID)
-	public User(String uuid, String username, String email, String password, String role) {
-		this.uuid = uuid;
-		this.username = username;
-		this.email = email;
-		this.password = password;
-		this.role = role;
-	}
+    /**
+     * Constructs a new User without an ID, used for creating new users.
+     *
+     * @param uuid The UUID of the user.
+     * @param username The username of the user.
+     * @param email The email of the user.
+     * @param password The password of the user.
+     * @param role The role of the user (e.g., "admin", "customer").
+     */
+    public User(String uuid, String username, String email, String password, String role) {
+        this.uuid = uuid;
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+    }
 
-	// Constructor with ID (for existing users)
-	public User(int id, String uuid, String username, String email, String password, String role) {
-		this.id = id;
-		this.uuid = uuid;
-		this.username = username;
-		this.email = email;
-		this.password = password;
-		this.role = role;
-	}
+    /**
+     * Constructs an existing User with an ID.
+     *
+     * @param id The ID of the user.
+     * @param uuid The UUID of the user.
+     * @param username The username of the user.
+     * @param email The email of the user.
+     * @param password The password of the user.
+     * @param role The role of the user (e.g., "admin", "customer").
+     */
+    public User(int id, String uuid, String username, String email, String password, String role) {
+        this.id = id;
+        this.uuid = uuid;
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+    }
 
-	// Getters and Setters
-	public int getId() {
-		return id;
-	}
+    /**
+     * Gets the ID of the user.
+     *
+     * @return The ID of the user.
+     */
+    public int getId() {
+        return id;
+    }
 
-	public void setId(int id) {
-		this.id = id;
-	}
+    /**
+     * Sets the ID of the user.
+     *
+     * @param id The ID of the user.
+     */
+    public void setId(int id) {
+        this.id = id;
+    }
 
-	public String getUuid() {
-		return uuid;
-	}
+    /**
+     * Gets the UUID of the user.
+     *
+     * @return The UUID of the user.
+     */
+    public String getUuid() {
+        return uuid;
+    }
 
-	public void setUuid(String uuid) {
-		this.uuid = uuid;
-	}
+    /**
+     * Sets the UUID of the user.
+     *
+     * @param uuid The UUID of the user.
+     */
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
 
-	public String getUsername() {
-		return username;
-	}
+    /**
+     * Gets the username of the user.
+     *
+     * @return The username of the user.
+     */
+    public String getUsername() {
+        return username;
+    }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+    /**
+     * Sets the username of the user.
+     *
+     * @param username The username of the user.
+     */
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
-	public String getEmail() {
-		return email;
-	}
+    /**
+     * Gets the email of the user.
+     *
+     * @return The email of the user.
+     */
+    public String getEmail() {
+        return email;
+    }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+    /**
+     * Sets the email of the user.
+     *
+     * @param email The email of the user.
+     */
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-	public String getPassword() {
-		return password;
-	}
+    /**
+     * Gets the password of the user.
+     *
+     * @return The password of the user.
+     */
+    public String getPassword() {
+        return password;
+    }
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    /**
+     * Sets the password of the user.
+     *
+     * @param password The password of the user.
+     */
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-	public String getRole() {
-		return role;
-	}
+    /**
+     * Gets the role of the user.
+     *
+     * @return The role of the user.
+     */
+    public String getRole() {
+        return role;
+    }
 
-	public void setRole(String role) {
-		this.role = role;
-	}
+    /**
+     * Sets the role of the user.
+     *
+     * @param role The role of the user.
+     */
+    public void setRole(String role) {
+        this.role = role;
+    }
 }
