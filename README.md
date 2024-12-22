@@ -70,5 +70,11 @@ If you have a GameStopper.war file and want to import it into Eclipse, follow th
    - Add the GameStopper project to the list of configured resources.
    - Click Finish.
    - Run the Application
+ 
+Please note, on the ecommerce web application it self, you can use this login for admin that has a preset role, and can access the admin dashboard:
+ - Email: a@gmail.com
+ - Password: a
+
+Being admin is the only way you can access the admin dashboard. If you want to, you could create your own account and preset the value through sql manually. 
 
 
