@@ -178,11 +178,6 @@ public class CheckoutController extends HttpServlet {
                 return;
             }
 
-            checkoutDAO.updateCheckoutStatus(checkout.getCheckoutId(), "APPROVED");
-            for (CartItem item : cartItems) {
-                productDAO.reduceInventory(item.getProductId(), item.getQuantity());
-            }
-
             session.removeAttribute("cartItems");
             request.setAttribute("orderSuccess", true);
             request.setAttribute("order", checkout);
