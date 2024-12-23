@@ -30,32 +30,6 @@
 					Shipping to: <strong>${fn:escapeXml(order.shippingAddress)}</strong>
 				</p>
 			</div>
-			<h2>Order Details</h2>
-			<table class="order-details">
-				<thead>
-					<tr>
-						<th>Product</th>
-						<th>Price</th>
-						<th>Quantity</th>
-						<th>Subtotal</th>
-					</tr>
-				</thead>
-				<tbody>
-					<c:forEach var="item" items="${cartItems}">
-						<tr>
-							<td>${fn:escapeXml(item.product.name)}</td>
-							<td>$${item.product.price}</td>
-							<td>${item.quantity}</td>
-							<td>$${item.product.price * item.quantity}</td>
-						</tr>
-					</c:forEach>
-				</tbody>
-			</table>
-			<div class="total-amount">
-				<p>
-					Total: <strong>$${order.totalAmount}</strong>
-				</p>
-			</div>
 		</c:if>
 
 		<!-- Failure Message -->
