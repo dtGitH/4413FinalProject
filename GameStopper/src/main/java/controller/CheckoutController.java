@@ -174,7 +174,7 @@ public class CheckoutController extends HttpServlet {
                 checkoutDAO.updateCheckoutStatus(checkout.getCheckoutId(), "DECLINED");
                 request.setAttribute("errorMessage", "Credit Card Authorization Failed.");
                 request.setAttribute("cartItems", cartItems);
-                request.getRequestDispatcher("/checkout").forward(request, response);
+                request.getRequestDispatcher("/checkout.jsp").forward(request, response);
                 return;
             }
 
